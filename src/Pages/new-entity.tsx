@@ -1,105 +1,137 @@
 import { useState } from "react";
 import { DefterDb, Entity } from "../db";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BsTelephoneOutbound, CiUser, MdOutlineStickyNote2 } from "../icons";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { Button, buttonVariants } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
+
+import * as z from "zod"
+
+const formSchema = z.object({
+  name: z.string().min(2, 'En az 2 karakter girmelisiniz'),
+  phoneNumber: z.string(),
+  note: z.string(),
+})
 
 const db = new DefterDb();
 
-function NewEntity() {
-  const [name, setName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [note, setNote] = useState("");
-  const [result, setResult] = useState("");
+export default function NewEntity() {
+  const navigate = useNavigate();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      note: '',
+      phoneNumber: '',
+    },
+  })
 
-  function resetForm() {
-    setName("");
-    setPhoneNumber("");
-    setNote("");
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    console.log(values)
+
+    const newCustomer: Entity = {
+      name: values.name,
+      phoneNumber: values.phoneNumber,
+      note: values.note,
+    };
+    db.entities
+      .add(newCustomer)
+      .then(() => {
+        navigate('/entities')
+        toast(newCustomer.name + " isimli kişi eklendi")
+
+        // Navigate({to:'/entities'})
+      });
   }
-  return (
-    <>
-      <form
-        className="p-2 m-2 flex rounded-sm flex-col gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const newCustomer: Entity = {
-            name,
-            phoneNumber,
-            note,
-          };
-          db.entities
-            .add(newCustomer)
-            .then(resetForm)
-            .then(() => {
-              setResult("Eklendi");
-            });
-        }}
-      >
-        <div className="flex">
-          <div className="w-1/5 flex justify-center items-center">
-          <span className="text-4xl">
-              <CiUser />
-            </span>
-          </div>
-          <div className="w-4/5 flex bg-inherit border-white border-2 rounded ">
-            <input
-              onChange={(e) => setName(e.target.value)}
-              value={name}
-              className="p-2 bg-inherit"
-              placeholder="isim"
-            />
-          </div>
-        </div>
-        <div className="flex">
-          <div className="w-1/5 flex justify-center items-center">
-          <span className="text-2xl">
-              <BsTelephoneOutbound />
-            </span>
-          </div>
-          <div className="w-4/5 flex bg-inherit border-white border-2 rounded ">
-            <input
-              onChange={(e) => {
-                const val = e.target.value;
-                setPhoneNumber(val);
-              }}
-              value={phoneNumber}
-              inputMode="tel"
-              className="p-2 bg-inherit "
-              placeholder="telefon"
-            />
-          </div>
-        </div>
-        <div className="flex">
-          <div className="w-1/5 flex justify-center items-center">
-          <span className="text-3xl">
-              <MdOutlineStickyNote2/>
-            </span>
-          </div>
-          <div className="w-4/5 flex bg-inherit border-white border-2 rounded ">
-            <input
-              onChange={(e) => setNote(e.target.value)}
-              value={note}
-              className="p-2 bg-inherit "
-              placeholder="not"
-            />
-          </div>
-        </div>
 
-        <span className="text-center w-full block p-2 mt-2">{result}</span>
-        <div className="flex flex-row">
-          <button className="text-center w-full block p-2 mt-2 underline underline-offset-4">
-            Kaydet
-          </button>
-          <Link
-            to={`/entities/`}
-            className="text-center w-full block p-2 mt-2 underline underline-offset-4"
-          >
-            Geri
-          </Link>
-        </div>
-      </form>
-    </>
+  return (
+    <div className="container ">
+      <Card>
+        <CardHeader>
+          <CardTitle>Yeni Kişi Ekle</CardTitle>
+          <CardDescription />
+        </CardHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Kişi Adı</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Kişi Adı" {...field} />
+                    </FormControl>
+                    <FormDescription />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefon Numarası</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Telefon Numarası" {...field} />
+                    </FormControl>
+                    <FormDescription />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="note"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Not</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Not" {...field} />
+                    </FormControl>
+                    <FormDescription />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button type="submit">Kaydet</Button>
+              <Link
+                to={`/entities/`}
+                className={buttonVariants({ variant: 'outline', })}
+              >
+                Geri
+              </Link>
+            </CardFooter>
+          </form>
+        </Form>
+      </Card>
+    </div>
   );
 }
-
-export default NewEntity;

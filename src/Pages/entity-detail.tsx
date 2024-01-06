@@ -3,10 +3,58 @@ import { DefterDb, Entity } from "../db";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { VList } from "virtua";
-import { BsTelephoneOutbound , BsWhatsapp, CiUser ,MdOutlineStickyNote2, MdOutlineTextsms } from "../icons";
+import { BsTelephoneOutbound, BsWhatsapp, CiUser, MdOutlineStickyNote2, MdOutlineTextsms } from "../icons";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+
+
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { TrashIcon } from "@radix-ui/react-icons";
 
 const db = new DefterDb();
 export default function EntityDetail() {
+
+  const [open, setOpen] = useState(false);
+
   const { entityId } = useParams();
   const navigate = useNavigate();
   const [removeRequested, setRemoveRequested] = useState(false);
@@ -70,138 +118,154 @@ export default function EntityDetail() {
     );
     await db.entities.delete(entity?.id ?? -1);
   }
+  const status =
+    balance > 0 ? `${entity?.name} isimli kişinin ${balance} tl alacağı var` :
+      balance == 0 ? `${entity?.name} isimli kişinin borcu yoktur` :
+        `${entity?.name} isimli kişinin ${balance * -1} tl borcu var`
+
+  const msg =
+    balance > 0 ? `Alacağınız%20${balance}%20tl` :
+      balance == 0 ? `Borcunuz%20yoktur` :
+        `Borcunuz%20${balance * -1}%20tl`
+
   return (
     <div className="w-full">
-      <div className="flex flex-row justify-between">
-        <div className="flex flex-col w-1/2 ">
-          <div className="flex flex-row gap-2">
-            <span className="text-2xl">
-              <CiUser />
-            </span>
-            <span className="text-xl">{entity?.name}</span>
-          </div>
-          <div className="flex flex-row gap-2">
-            <span className="text-xl">
-              <BsTelephoneOutbound />
-            </span>
-            <span className="text-xl">{entity?.phoneNumber}</span>
-          </div>
-          <div className="flex flex-row gap-2">
-            <span className="text-xl">
-              <MdOutlineStickyNote2/>
-            </span>
-            <span className="text-xl">{entity?.note}</span>
-          </div>
-        </div>
-        <div className="flex flex-col w-1/2 items-end">
-          <span
-            className="font-bold text-2xl"
-            style={{ color: balance < 0 ? "#F31559" : "#A8DF8E" }}
-          >
-            {balance} tl
-          </span>
-          {!phoneNumberIsInvalid && (
-            <div className="flex flex-row gap-4">
-              <a
-                target="_blank"
-                className=" font-bold text-2xl"
-                href={`sms:${normalizedPhoneNumber}&body=Borcunuz ${balance} tl`}
-              >
-                    <MdOutlineTextsms />
-              </a>
-              <a
-                target="_blank"
-                className=" font-bold text-xl"
-                href={`https://wa.me/${normalizedPhoneNumber}?text=Borcunuz%20${balance}%20tl`}
-              >
-               <BsWhatsapp />
-              </a>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Emin misiniz?</DialogTitle>
+            <DialogDescription>Kişi ve kişi ile alakalı bilgiler silinecektir.Bu işlem geri alınamaz.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <div className="flex justify-between items-center flex-1">
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                  Vazgeç
+                </Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button type="button" onClick={handleRemove} variant="destructive">
+                  Kişiyi Sil
+                </Button>
+              </DialogClose>
+
             </div>
-          )}
-        </div>
-      </div>
-      {removeRequested ? (
-        <div>
-          <span>
-            Bu kisi/kurum ve islem detaylari silinecektir. Emin misiniz?{" "}
-          </span>
-          <button
-            className="text-center text-red-400 font-bold text-2xl w-full block p-2 mt-2 underline underline-offset-4"
-            onClick={handleRemove}
-            disabled={removeStarted}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>{entity?.name}</CardTitle>
+              <CardDescription>
+                {entity?.note}
+                <br />
+                {entity?.phoneNumber}
+              </CardDescription>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Button>İşlemler</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {phoneNumberIsInvalid ? (
+                  <DropdownMenuItem disabled>
+                    Hatalı telefon numarası
+                  </DropdownMenuItem>
+                )
+                  : (
+                    <>
+                      <DropdownMenuItem>
+                        <a
+                          className="flex items-center gap-1"
+                          href={`tel:${normalizedPhoneNumber}`}>
+                          <BsTelephoneOutbound />
+                          Arama yap
+                        </a>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <a
+                          target="_blank"
+                          className="flex items-center gap-1"
+                          href={`sms:${normalizedPhoneNumber}&body=${msg}`}
+                        >
+                          <MdOutlineTextsms /> Kısa mesaj
+                        </a>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <a
+                          target="_blank"
+                          className="flex items-center gap-1"
+                          href={`https://wa.me/${normalizedPhoneNumber}?text=${msg}`}
+                        >
+                          <BsWhatsapp /> Whatsapp
+                        </a>
+                      </DropdownMenuItem>
+                    </>
+                  )
+                }
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => { setOpen(true) }}>
+                  <TrashIcon />
+                  Kişiyi Sil
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {status}
+        </CardContent>
+        <CardFooter className="flex justify-between">
+
+          <Link
+            to={`/entities/${entityId}/new`}
+            className={buttonVariants()}
           >
-            Sil
-          </button>
-          <button
-            className="text-center w-full block p-2 mt-2 underline underline-offset-4"
-            onClick={() => setRemoveRequested(false)}
-            disabled={removeStarted}
+            Yeni işlem ekle
+          </Link>
+          <Link
+            to={`/entities`}
+            className={buttonVariants({ variant: 'outline' })}
           >
             Geri
-          </button>
-        </div>
-      ) : (
-        <>
-          <button
-            className="text-left text-red-400 font-bold w-full block p-1 underline underline-offset-4"
-            onClick={() => setRemoveRequested(true)}
-          >
-            Kisi Sil
-          </button>
-          <Row
-            label="Toplam"
-            desc=""
-            debit={totalDebit}
-            credit={totalCredit}
-          />
-          <div className="flex-1 p-1">
-            <div className="flex flex-row">
+          </Link>
+
+        </CardFooter>
+      </Card>
+
+      <div className="flex-1">
+        <span className="text-center w-full block p-1 mt-1 border-t-2 border-b-2 border-white">
+          Detaylar
+        </span>
+        <VList style={{ height: "50vh" }}>
+          {transactions?.map((t) => {
+            const ttype = getType(t.type);
+            const debit = ttype == "d";
+            const credit = ttype == "c";
+            const error = !debit && !credit;
+            if (error) {
+              console.log("error on transaction type for :", t.id);
+            }
+            return (
               <Link
-                to={`/entities/${entityId}/new`}
-                className="text-center w-full block underline underline-offset-4"
+                key={t.id}
+                to={`/entities/${entityId}/${t.id}`}
+                className="w-full block "
               >
-                Yeni Ekle
+                <Row
+                  label={t.date}
+                  desc={t.note}
+                  debit={debit ? t.amount : undefined}
+                  credit={credit ? t.amount : undefined}
+                />
               </Link>
-              <Link
-                to={`/entities`}
-                className="text-center w-full block underline underline-offset-4"
-              >
-                Geri
-              </Link>
-            </div>
-          </div>
-          <div className="flex-1">
-            <span className="text-center w-full block p-1 mt-1 border-t-2 border-b-2 border-white">
-              Detaylar
-            </span>
-            <VList style={{ height: "50vh" }}>
-              {transactions?.map((t) => {
-                const ttype = getType(t.type);
-                const debit = ttype == "d";
-                const credit = ttype == "c";
-                const error = !debit && !credit;
-                if (error) {
-                  console.log("error on transaction type for :", t.id);
-                }
-                return (
-                  <Link
-                    key={t.id}
-                    to={`/entities/${entityId}/${t.id}`}
-                    className="w-full block "
-                  >
-                    <Row
-                      label={t.date}
-                      desc={t.note}
-                      debit={debit ? t.amount : undefined}
-                      credit={credit ? t.amount : undefined}
-                    />
-                  </Link>
-                );
-              })}
-            </VList>
-          </div>
-        </>
-      )}
+            );
+          })}
+        </VList>
+      </div>
     </div>
   );
 }

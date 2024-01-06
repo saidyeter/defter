@@ -1,46 +1,35 @@
 import { Link } from "react-router-dom";
-import { HiUsers,HiUserPlus, MdRestore, LuDatabaseBackup } from "../icons";
+import { HiUsers, HiUserPlus, MdRestore, LuDatabaseBackup } from "../icons";
+import { buttonVariants } from "@/components/ui/button";
+import { } from '@radix-ui/react-icons'
 
 export default function Home() {
   return (
-    <div className="flex gap-2 pt-2">
+    <div className="flex flex-wrap gap-1">
       <Link
         to="/entities"
-        className="flex flex-col w-16"
+        className={buttonVariants({ variant: 'default', })}
       >
-        <span className="text-center text-6xl">
-          <HiUsers />
-        </span>
-        <span className="text-center w-full ">Kisi veya Kurumlar</span>
+        <HiUsers />&nbsp;Kişiler
       </Link>
       <Link
         to="/entities/new"
-        className="flex flex-col w-16"
+        className={buttonVariants({ variant: 'default', })}
       >
-        <span className="text-center text-6xl">
-          <HiUserPlus />
-        </span>
-        <span className="text-center w-full ">Yeni</span>
+        <HiUserPlus />&nbsp;Yeni Kişi Ekle
       </Link>
       <Link
         to="/restore"
-        className="flex flex-col w-16"
+        className={buttonVariants({ variant: 'default', })}
       >
-        <span className="text-center text-6xl">
-          <MdRestore />
-        </span>
-        <span className="text-center w-full">Yedekten Yükle</span>
+        <MdRestore />&nbsp;Yedekten Yükle
       </Link>
       <Link
         to="/backup"
-        className="flex flex-col w-16"
+        className={buttonVariants({ variant: 'default', })}
       >
-        <span className="text-center text-6xl">
-          <LuDatabaseBackup />
-        </span>
-        <span className="text-center w-full">Yedekle</span>
+        <LuDatabaseBackup />&nbsp;Yedekle
       </Link>
-
     </div>
   );
 }

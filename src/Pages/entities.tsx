@@ -3,6 +3,10 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { DefterDb } from "../db";
 import { Link } from "react-router-dom";
 import { VList } from "virtua";
+import { Input } from "@/components/ui/input";
+import { buttonVariants } from "@/components/ui/button";
+import { PersonIcon } from "@radix-ui/react-icons"
+
 
 const db = new DefterDb();
 
@@ -20,41 +24,48 @@ function Entities() {
   );
 
   return (
-    <>
-      <input
-        className="w-full h-10 mt-4 bg-inherit font-bold p-2 border-white border-2 rounded "
-        placeholder="Kisi/Kurum ara"
-        onChange={(e) => setSarchKey(e.target.value.toString())}
-      />
+    <div className="w-full container">
       <Link
         to="/entities/new"
-        className="text-center w-full block p-2 mt-2 underline underline-offset-4"
+        className={buttonVariants({ variant: 'default', })}
       >
         Yeni Ekle
       </Link>
+      <Input
+        className="placeholder:text-muted mb-2"
+        placeholder="Kişi Ara"
+        onChange={(e) => setSarchKey(e.target.value.toString())}
+      />
+
       <VList style={{ height: "60vh" }}>
         {entities ? (
           entities.map((c) => (
-            <Link
+            <div
               key={c.id}
-              to={`/entities/${c.id}`}
+              className="mb-2 flex items-center space-x-4 rounded-md border p-4"
             >
-              <div className="p-2 m-2 flex border-b-2 rounded-sm ">
-                <h2 className="w-1/2 md:w-1/4">{c.name}</h2>
-                <span className="w-1/2 md:w-1/4 text-center">
+              <PersonIcon />
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {c.name}
+                </p>
+                <p className="text-sm text-muted-foreground">
                   {c.phoneNumber}
-                </span>
-                <span className="hidden text-right md:inline-block md:w-1/2">
-                  {c.note}
-                </span>
+                </p>
               </div>
-            </Link>
+              <Link
+                to={`/entities/${c.id}`}
+                className={buttonVariants({ variant: 'default', })}
+              >
+                Detay
+              </Link>
+            </div>
           ))
         ) : (
           <>loading</>
         )}
       </VList>
-    </>
+    </div>
   );
 }
 

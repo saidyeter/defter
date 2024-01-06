@@ -1,17 +1,19 @@
 import { Outlet, Link } from "react-router-dom";
 import { MdMenuBook } from "../icons";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export default function Layout() {
   return (
-    <main className="flex h-full m-auto flex-col items-center justify-start p-4 text-white  md:p-10 w-full flex-1 md:w-[720px]">
-      <div className="w-full flex">
+    <main className="container flex flex-col flex-1">
+      <div className="flex justify-between items-center my-2">
         <Link
           to="/"
-          className="text-2xl p-2 font-bold text-center w-full  flex items-center justify-center"
+          className="text-2xl p-2 font-semibold text-center flex items-center justify-center"
         >
-          <span>DEFTER &nbsp;</span>
+          DEFTER &nbsp;
           <MdMenuBook />
         </Link>
+        <ModeToggle />
 
       </div>
       <Outlet />
